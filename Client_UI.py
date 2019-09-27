@@ -10,13 +10,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import socket
 import select
 import errno, json, connector
-from data import message
+from message import message
 
 HEADERSIZE = 10
 IP = ""
 PORT = 0
 username = None
 client_socket = None
+sending = False
 
 def __init__():
     with open("client.ini", 'r') as f:
@@ -124,16 +125,23 @@ class Ui_MainWindow(object):
         self.Incoming_Message.append(f"{value}")
 
     def send_message(self):
-        msg = message(False, HEADERSIZE)
         if self.My_Message.text() != "":
+            msg = message(False, HEADERSIZE)
             msg.set_msg(self.My_Message.text())
-            client_socket.send(msg.get_stream())
+            msg.set_sender(username)
+            self.msg_ret.terminate()
+            connector.send(client_socket, HEADERSIZE, msg)
+            self.msg_ret.start()
             self.My_Message.setText("")
 
     def roll_dice(self):
-        dice = message(False, HEADERSIZE)
-        dice.set_msg(f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}")
-        client_socket.send(dice.get_stream())
+        if self.D_Num.value() != 0 and self.D_Type.value() != 0:
+            dice = message(False, HEADERSIZE)
+            dice.set_sender(username)
+            dice.set_msg(f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}")
+            self.msg_ret.terminate()
+            connector.send(client_socket, HEADERSIZE, dice)
+            self.msg_ret.start()
 
 def main():
     global client_socket
@@ -152,7 +160,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow, "Furry Residency")
+    ui.setupUi(MainWindow, "FCChat - Client")
     MainWindow.show()
     exit(app.exec_())
 

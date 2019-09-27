@@ -2,7 +2,7 @@ import socket
 import select
 from time import sleep
 import roller, json, connector
-from data import message
+from message import message
 from logger import logger
 
 HEADERSIZE = 10
@@ -39,11 +39,11 @@ def main():
             
             for notified_socket in read_socket:            
                 if notified_socket == server_socket:
-                    print("Incoming connection")
                     client_socket, client_address = server_socket.accept()
                     try:
                         user = connector.retrive(client_socket, HEADERSIZE, NAME)
-                    except:
+                    except Exception as ex:
+                        out.log(f"Exception while retriving message: {ex}")
                         user = False
 
                     if user is False:
@@ -52,7 +52,7 @@ def main():
                     socket_list.append(client_socket)
                     clients[client_socket] = user.get_msg()
                     msg = message(HEADER_SIZE=HEADERSIZE) 
-                    msg.set_sender = NAME.encode("utf-8")
+                    msg.set_sender(NAME)
                     msg.set_msg(f"{user.get_msg()} connected to the server!")
 
                     for client_socket in clients:
@@ -88,8 +88,8 @@ def main():
     except Exception as e:
         out.log(e, error=True)
     finally:
-        server_socket.shutdown(socket.SHUT_RDWR)
-        server_socket.close()
+        socket_list[0].shutdown(socket.SHUT_RDWR)
+        socket_list[0].close()
         out.close()
         if EXIT:
             exit(0)

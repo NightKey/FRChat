@@ -45,7 +45,7 @@ class message():
         return "{}{}{}".format(self.sender.decode("utf-8"), sep, self.message.decode("utf-8"))
     
     def get_stream(self, server=False):
-        if server: 
+        if server and self.sender_header != None: 
             if self.has_file and self.file != None:
                 return b'4'+self.sender_header+self.sender+self.message_header+self.message+self.file_header+self.file+self.file_name_header+self.file_name
             return b'2'+self.sender_header+self.sender+self.message_header+self.message
