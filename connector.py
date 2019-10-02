@@ -5,8 +5,8 @@ def _retrive(client_socket, HEADERSIZE):
     message_header = client_socket.recv(1)
     if not len(message_header):
         return False
-    ret = message(has_file=int(message_header)>2, HEADER_SIZE=HEADERSIZE)
-    if int(message_header) == 2:
+    ret = message(has_file=(int(message_header)==3 or int(message_header) == 4), HEADER_SIZE=HEADERSIZE)
+    if (int(message_header)==2 or int(message_header) == 4):
         sender_length =   int(client_socket.recv(HEADERSIZE).decode("utf-8"))
         ret.set_sender(client_socket.recv(sender_length).decode("utf-8")) 
     message_length = int(client_socket.recv(HEADERSIZE).decode("utf-8"))
