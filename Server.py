@@ -32,7 +32,7 @@ def main():
     server_socket.listen()
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain('certif/cert.pem', 'certif/key.pem')
+    context.load_cert_chain('certif/PrivateKey.pem', 'certif/PublicKey.pem')
     server_socket = context.wrap_socket(server_socket, server_side=True)
 
     socket_list = [server_socket]

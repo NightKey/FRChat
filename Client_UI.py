@@ -150,8 +150,8 @@ def init_socket():
     client_socket.connect((IP, PORT))
     client_socket.setblocking(True)
 
-    context = ssl.create_default_context(cafile='certif/cert.pem')
-    client_socket = context.wrap_socket(client_socket, server_hostname='furryresidency.com')
+    context = ssl.create_default_context(cafile='certif/PrivateKey.pem')
+    client_socket = context.wrap_socket(client_socket, server_hostname='furryresidency')
 
     user_name = message(HEADER_SIZE=HEADERSIZE)
     user_name.set_sender(username)
