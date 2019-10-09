@@ -1,7 +1,34 @@
 from message import message
 from datetime import datetime
 
+"""This modul sends, and retrives messages in a 6 step way.
+Send:
+    1. Send first half of SHA256
+    2. Retrive first half of SHA256
+    3. Send secund half of SHA256
+    4. Retrive secund half of SHA256
+    5. Retrive message (validator message)
+    6. Send message (If validator is within margin of error, and is correct)
+Retrive:
+    1. Retrive first half of SHA256
+    2. Send first half of SHA256
+    3. Retrive secund half of SHA256
+    4. Send secund half of SHA256
+    5. Send validator message
+    6. Retrive message
+it uses the message module!
+"""
+
 def _retrive(client_socket, HEADERSIZE):
+    """Retrives a message with the following format: {size}[{sender_header}{sender}]{message_header}{message}[{file_header}{file}{file_name_header}{file_name}]
+    Where the sender, and the file is optional, and dependent on the size. The posbble sizez:
+        1 - message only
+        2 - sender and message
+        3 - message with file
+        4 - sender, and message with file
+    Input: client_socket - the socket it should retrive data from, HEADERSIZE - the header's size
+    Return: a message object created from the socket stream
+    """
     message_header = client_socket.recv(1)
     if not len(message_header):
         return False
@@ -18,9 +45,13 @@ def _retrive(client_socket, HEADERSIZE):
         ret.file_name = client_socket.recv(int(ret.file_name_header.decode("utf-8")))
     return ret
 
-def retrive(client_socket, HEADERSIZE, name):
+def retrive(client_socket, HEADERSIZE, _validator):
+    """Retrives a message with the described 6 step process.
+    Input: client_socket - the socket used to communicate with the other party, HEADERSIZE - the header's size, _validator - the string that is used to validate.
+    Return: a message object cretated from the socket stream
+    """
     validator = message(HEADER_SIZE=HEADERSIZE)
-    validator.set_sender(name)
+    validator.set_sender(_validator)
     validator.set_msg(str(datetime.timestamp(datetime.now())))
     key = validator.get_hash()
     if isinstance(_retrive(client_socket, HEADERSIZE), message): client_socket.send(f"1{int(len(key)/2):>{HEADERSIZE}}{key[:int(len(key)/2)]}".encode("utf-8"))
@@ -32,6 +63,10 @@ def retrive(client_socket, HEADERSIZE, name):
     return resp
 
 def send(client_socket, HEADERSIZE, msg):
+    """Sends a message with the described 6 step process.
+    Input: client_socket - the socket used to communicate with the other party, HEADERSIZE - the header's size, msg - the msg object to send.
+    Return: True - message was sent safely, False - message was not sent, because the validation was not successfull (Error message was sent instead).
+    """
     now = datetime.now()
     key = msg.get_hash()
     outside_key = []
