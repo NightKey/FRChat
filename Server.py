@@ -93,9 +93,9 @@ def main():
     except Exception as e:
         out.log(e, error=True)
     finally:
-        socket_list[0].shutdown(socket.SHUT_RDWR)
-        socket_list[0].close()
         out.close()
+        socket_list[0].close()
+        #socket_list[0].shutdown(socket.SHUT_RDWR)
         if EXIT:
             exit(0)
 
@@ -103,3 +103,4 @@ if __name__=="__main__":
     __init__()
     while True:
         main()
+        print('Restarting...')
