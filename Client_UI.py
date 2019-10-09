@@ -150,8 +150,8 @@ def init_socket():
     client_socket.connect((IP, PORT))
     client_socket.setblocking(True)
 
-    context = ssl.create_default_context()
-    client_socket = context.wrap_socket(client_socket, server_hostname='127.0.0.1')
+    context = ssl.create_default_context(cafile='certif/cert.pem')
+    client_socket = context.wrap_socket(client_socket, server_hostname='furryresidency.com')
 
     user_name = message(HEADER_SIZE=HEADERSIZE)
     user_name.set_sender(username)
@@ -167,7 +167,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow, "FCChat - Client")
+    ui.setupUi(MainWindow, "FRChat - Client")
     MainWindow.show()
     exit(app.exec_())
 
