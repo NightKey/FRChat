@@ -1,4 +1,5 @@
 import socket
+import ssl
 import select
 from time import sleep
 import roller, json, connector
@@ -29,6 +30,10 @@ def main():
     server_socket.bind((IP, PORT))
     #Starting to listen on port
     server_socket.listen()
+
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain('certif/cert.pem', 'certif/key.pem')
+    server_socket = context.wrap_socket(server_socket, server_side=True)
 
     socket_list = [server_socket]
     clients = {}

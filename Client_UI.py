@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import socket
+import ssl
 import select
 import errno, json, connector
 from message import message
@@ -143,11 +144,14 @@ class Ui_MainWindow(object):
             connector.send(client_socket, HEADERSIZE, dice)
             self.msg_ret.start()
 
-def main():
+def init_socket():
     global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((IP, PORT))
     client_socket.setblocking(True)
+
+    context = ssl.create_default_context()
+    client_socket = context.wrap_socket(client_socket, server_hostname='127.0.0.1')
 
     user_name = message(HEADER_SIZE=HEADERSIZE)
     user_name.set_sender(username)
@@ -155,6 +159,9 @@ def main():
     if not connector.send(client_socket, HEADERSIZE, user_name):
         print("Error in the connection!")
         exit(2)
+
+def main():
+    init_socket()
     #Start UI
     import sys
     app = QtWidgets.QApplication(sys.argv)
