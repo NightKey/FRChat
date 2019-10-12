@@ -12,6 +12,7 @@ import ssl
 import select
 import errno, json, connector
 from message import message
+import time
 
 HEADERSIZE = 10
 IP = ""
@@ -41,7 +42,7 @@ class retriver(QtCore.QThread):
                     if msg is False:
                         self.return_value.emit("CONNECTION TO THE SERVER WAS CLOSED")
                     else:
-                        self.return_value.emit(msg.get_message_formated('> '))
+                        self.return_value.emit(f"{msg.get_date_time()} {msg.get_message_formated('> ')}")
             except IOError as e:
                 if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                     print("Reading error!")
@@ -130,9 +131,7 @@ class Ui_MainWindow(object):
             msg = message(False, HEADERSIZE)
             msg.set_msg(self.My_Message.text())
             msg.set_sender(username)
-            self.msg_ret.terminate()
-            connector.send(client_socket, HEADERSIZE, msg)
-            self.msg_ret.start()
+            self.send(msg)
             self.My_Message.setText("")
 
     def roll_dice(self):
@@ -140,9 +139,15 @@ class Ui_MainWindow(object):
             dice = message(False, HEADERSIZE)
             dice.set_sender(username)
             dice.set_msg(f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}")
-            self.msg_ret.terminate()
-            connector.send(client_socket, HEADERSIZE, dice)
-            self.msg_ret.start()
+            self.send(dice)
+            
+    
+    def send(self, msg):
+        self.msg_ret.terminate()
+        time.sleep(0.001)
+        connector.send(client_socket, HEADERSIZE, msg)
+        time.sleep(0.001)
+        self.msg_ret.start()
 
 def init_socket():
     global client_socket
@@ -152,6 +157,7 @@ def init_socket():
 
     context = ssl.create_default_context(cafile='certif/PrivateKey.pem')
     client_socket = context.wrap_socket(client_socket, server_hostname='furryresidency')
+    #client_socket.setblocking(False)
 
     user_name = message(HEADER_SIZE=HEADERSIZE)
     user_name.set_sender(username)

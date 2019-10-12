@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from hashlib import sha256
 
 """
@@ -31,6 +32,7 @@ class message():
         self.HEADER_SIZE = HEADER_SIZE
         self.sender = None
         self.sender_header = None
+        self.set_date_time(str(datetime.date(datetime.now())), str(datetime.time(datetime.now())).split('.')[0])
     
     def set_msg(self, message):
         """Sets up the message, and the message header. Returns nothing.
@@ -74,6 +76,15 @@ class message():
         with open(os.path.join("files", self.file_name.decode("utf-8")), 'bw') as f:
             f.write(self.file)
 
+    def set_date_time(self, date, time):
+        self.date = date.encode('utf-8')
+        self.time = time.encode('utf-8')
+        self.date_header = f"{len(self.date):>{self.HEADER_SIZE}}".encode('utf-8')
+        self.time_header = f"{len(self.time):>{self.HEADER_SIZE}}".encode('utf-8')
+
+    def get_date_time(self):
+        return f"{self.date.decode('utf-8')} - {self.time.decode('utf-8')}"
+
     def get_message_formated(self, sep=": "):
         """Returns the message and the sender in a readable format with the separator character given. Example:
         sender: message - sep=': '
@@ -96,17 +107,17 @@ class message():
             self.set_msg(f"Sent a file named '{self.get_filename()}'")
         if send_sender and self.sender_header != None: 
             if self.has_file and self.file != None:
-                return b'4'+self.sender_header+self.sender+self.message_header+self.message+self.file_header+self.file+self.file_name_header+self.file_name
-            return b'2'+self.sender_header+self.sender+self.message_header+self.message
+                return b'6'+self.date_header+self.date+self.time_header+self.time+self.sender_header+self.sender+self.message_header+self.message+self.file_header+self.file+self.file_name_header+self.file_name
+            return b'4'+self.date_header+self.date+self.time_header+self.time+self.sender_header+self.sender+self.message_header+self.message
         else:
             if self.has_file and self.file != None:
-                return b'3'+self.message_header+self.message+self.file_header+self.file+self.file_name_header+self.file_name
-            return b'1'+self.message_header+self.message
+                return b'5'+self.date_header+self.date+self.time_header+self.time+self.message_header+self.message+self.file_header+self.file+self.file_name_header+self.file_name
+            return b'3'+self.date_header+self.date+self.time_header+self.time+self.message_header+self.message
     
     def get_hash(self):
         """Returns the message's hash. The hash is created from the sender the message, and optionally the file, and filename, and their headers.
         """
-        sum = self.sender_header+self.sender+self.message_header+self.message
+        sum = self.date_header+self.date+self.time_header+self.time+self.sender_header+self.sender+self.message_header+self.message
         if self.has_file and self.file != None:
             sum += self.file_name_header+self.file_name+self.file_header+self.file
         sum = sha256(sum)
@@ -123,10 +134,12 @@ if __name__=="__main__":
     msg = message(has_file=True)
     msg.set_msg("Test_message")
     msg.set_sender('Furry residency')
-    print("Hash: {} {}".format(msg.get_hash(), ("ok" if "a3ce2b8e07d3a1e8b0263e783f4b401e0910ad50c71e40a9004151d324ad13ab" == msg.get_hash() else "ERROR")))
+    msg.set_date_time('1998-09-21', '12:22:04')
+    print("Hash: {} {}".format(msg.get_hash(), ("ok" if "5d942f554ca6e408cf7948bd3f664da409dd15451b98fc8c99fa58d4aece68d7" == msg.get_hash() else "ERROR")))
     msg2 = message(has_file=True)
     msg2.set_msg("Test_message")
     msg2.set_sender('Furry residency')
+    msg2.set_date_time('1998-09-21', '12:22:04')
     print("Are they hash the same: {} {}".format(msg2.check_integrity(msg.get_hash()), ("ok" if msg2.check_integrity(msg.get_hash()) else "ERROR")))
     print("Message: {0} {2}\nSender: {1} {3}".format(msg.get_msg(), msg.get_sender(), ("ok" if "Test_message" == msg.get_msg() else "ERROR"), ("ok" if "Furry residency" == msg.get_sender() else "ERROR")))
     print(msg.get_message_formated())

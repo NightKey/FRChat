@@ -32,10 +32,14 @@ def _retrive(client_socket, HEADERSIZE):
     message_header = client_socket.recv(1)
     if not len(message_header):
         return False
-    ret = message(has_file=(int(message_header)==3 or int(message_header) == 4), HEADER_SIZE=HEADERSIZE)
-    if (int(message_header)==2 or int(message_header) == 4):
-        sender_length =   int(client_socket.recv(HEADERSIZE).decode("utf-8"))
-        ret.set_sender(client_socket.recv(sender_length).decode("utf-8")) 
+    ret = message(has_file=(int(message_header)==5 or int(message_header) == 6), HEADER_SIZE=HEADERSIZE)
+    if (int(message_header)==4 or int(message_header) == 6):
+        sender_length = int(client_socket.recv(HEADERSIZE).decode("utf-8"))
+        ret.set_sender(client_socket.recv(sender_length).decode("utf-8"))
+    if int(message_header) != 1:
+        date = client_socket.recv(int(client_socket.recv(HEADERSIZE).decode("utf-8"))).decode('utf-8')
+        time = client_socket.recv(int(client_socket.recv(HEADERSIZE).decode("utf-8"))).decode('utf-8')
+        ret.set_date_time(date, time)
     message_length = int(client_socket.recv(HEADERSIZE).decode("utf-8"))
     ret.set_msg(client_socket.recv(message_length).decode("utf-8"))
     if ret.has_file:
@@ -77,8 +81,9 @@ def send(client_socket, HEADERSIZE, msg):
     resp = _retrive(client_socket, HEADERSIZE)
     outside_key_full = outside_key[0].get_msg() + outside_key[1].get_msg()
     sent_at = datetime.fromtimestamp(float(resp.get_msg()))
-    dif = (now - sent_at if sent_at < now else sent_at - now)    
-    if resp.check_integrity(outside_key_full) and dif.seconds < 3:
+    dif = (now - sent_at if sent_at < now else sent_at - now)
+    integ = resp.check_integrity(outside_key_full)
+    if integ and dif.seconds <= 8:
         client_socket.send(msg.get_stream(True))
         return True
     else:
