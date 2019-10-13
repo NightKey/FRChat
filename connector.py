@@ -33,13 +33,13 @@ def _retrive(client_socket, HEADERSIZE):
     if not len(message_header):
         return False
     ret = message(has_file=(int(message_header)==5 or int(message_header) == 6), HEADER_SIZE=HEADERSIZE)
-    if (int(message_header)==4 or int(message_header) == 6):
-        sender_length = int(client_socket.recv(HEADERSIZE).decode("utf-8"))
-        ret.set_sender(client_socket.recv(sender_length).decode("utf-8"))
     if int(message_header) != 1:
         date = client_socket.recv(int(client_socket.recv(HEADERSIZE).decode("utf-8"))).decode('utf-8')
         time = client_socket.recv(int(client_socket.recv(HEADERSIZE).decode("utf-8"))).decode('utf-8')
         ret.set_date_time(date, time)
+    if (int(message_header)==4 or int(message_header) == 6):
+        sender_length = int(client_socket.recv(HEADERSIZE).decode("utf-8"))
+        ret.set_sender(client_socket.recv(sender_length).decode("utf-8"))
     message_length = int(client_socket.recv(HEADERSIZE).decode("utf-8"))
     ret.set_msg(client_socket.recv(message_length).decode("utf-8"))
     if ret.has_file:
