@@ -41,18 +41,19 @@ class retriver(QtCore.QThread):
                     msg = connector.retrive(client_socket, HEADERSIZE, username)
                     if msg is False:
                         self.return_value.emit("CONNECTION TO THE SERVER WAS CLOSED")
+                        exit(0)
                     else:
                         self.return_value.emit(f"{msg.get_date_time()} {msg.get_message_formated('> ')}")
             except IOError as e:
                 if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                     print("Reading error!")
                     print(str(e))
-                    exit(0)
+                    exit(1)
                 continue
             except Exception as e:
                 print("General error")
                 print(str(e))
-                exit(0)
+                exit(1)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow, server_name):

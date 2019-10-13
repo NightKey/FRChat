@@ -3,4 +3,5 @@ __py*
 *.ini
 *.pyc
 *.bat
+*.msg
 .vscode

@@ -83,7 +83,7 @@ class message():
         self.time_header = f"{len(self.time):>{self.HEADER_SIZE}}".encode('utf-8')
 
     def get_date_time(self):
-        return f"{self.date.decode('utf-8')} - {self.time.decode('utf-8')}"
+        return f"{self.date.decode('utf-8')} {self.time.decode('utf-8')}"
 
     def get_message_formated(self, sep=": "):
         """Returns the message and the sender in a readable format with the separator character given. Example:
