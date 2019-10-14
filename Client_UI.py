@@ -22,6 +22,11 @@ client_socket = None
 sending = False
 
 def __init__():
+    """Initialises the program, with the init setups:
+    ip - The IP address of the server we want to connect to
+    port - The port number of the server we want to connect to
+    name - The name of the client application
+    """
     with open("client.ini", 'r') as f:
         data = json.load(f)
     global IP
@@ -33,7 +38,9 @@ def __init__():
 
 class retriver(QtCore.QThread):
     return_value = QtCore.pyqtSignal(str)
-
+    """This class is the retriver part of the client. 
+    It runs on a different thread than the GUI, and retrives messages without freezing it.
+    """
     def run(self, first=False):
         while True:
             try:
@@ -125,25 +132,35 @@ class Ui_MainWindow(object):
         self.label_4.setText(_translate("MainWindow", "Dice setup"))
 
     def retrive_msg(self, value):
+        """This function updates the GUI from a new message.
+        """
         self.Incoming_Message.append(f"{value}")
 
     def send_message(self):
+        """This function get's called, when we press RETURN, or press the send button.
+        It creates a message object, and calls the send function with it.
+        """
         if self.My_Message.text() != "":
             msg = message(False, HEADERSIZE)
-            msg.set_msg(self.My_Message.text())
-            msg.set_sender(username)
+            msg.message = self.My_Message.text()
+            msg.sender = username
             self.send(msg)
             self.My_Message.setText("")
 
     def roll_dice(self):
+        """This function gets called, when we roll. It creates a message object, and calls the send function with it.
+        """
         if self.D_Num.value() != 0 and self.D_Type.value() != 0:
             dice = message(False, HEADERSIZE)
-            dice.set_sender(username)
-            dice.set_msg(f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}")
+            dice.sender = username
+            dice.message = f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}"
             self.send(dice)
             
     
     def send(self, msg):
+        """Stops the retriving, so we won't get OSError, and waits a little, so it has time to stop retriving, then sends the message.
+        After a little wait, it restarts the retriving process...
+        """
         self.msg_ret.terminate()
         time.sleep(0.001)
         connector.send(client_socket, HEADERSIZE, msg)
@@ -151,18 +168,22 @@ class Ui_MainWindow(object):
         self.msg_ret.start()
 
 def init_socket():
+    """Initialises the connection with the remote server on the given port.
+    !IMPORTANT!
+    The server's certification.pem file must be in the folder certif, with the server's IP address.
+    """
     global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((IP, PORT))
     client_socket.setblocking(True)
 
-    context = ssl.create_default_context(cafile='certif/PrivateKey.pem')
+    context = ssl.create_default_context(cafile='certif/Certification.pem') #FOR NOW? IT HAS TO BE NAMED CERTIFICATION!
     client_socket = context.wrap_socket(client_socket, server_hostname='furryresidency')
     #client_socket.setblocking(False)
 
     user_name = message(HEADER_SIZE=HEADERSIZE)
-    user_name.set_sender(username)
-    user_name.set_msg(username)
+    user_name.sender = username
+    user_name.message = username
     if not connector.send(client_socket, HEADERSIZE, user_name):
         print("Error in the connection!")
         exit(2)

@@ -18,10 +18,18 @@ debug = (False if sys.gettrace() == None else True)
 del sys
 
 def log(data):
+    """Prints out debugg information, if debugger is atached. (Else it would slow the program down signigicantly)
+    """
     if debug:
         print(data)
 
 def __init__():
+    """Initialises the program from the .inni file
+    ip - The server's private IP address
+    port - The desired port number
+    name - The server's name
+    store - the store_msg flag, 0 - False, 1 - True
+    """
     log('Initialisation started...')
     with open("server.ini", 'r') as f:
         data = json.load(f)
@@ -41,6 +49,8 @@ def __init__():
     log('Initialisation finished...')
 
 def send_welcome_message(client_socket):
+    """Sebds all saved messages, if the save_message flag is set. The messages are saved in a pickle.
+    """
     if store_msgs:
         log("Opening msg file...")
         with open(f"{NAME}.msg", 'rb') as f:
@@ -62,13 +72,13 @@ def main():
 
     if store_msgs and not os.path.exists(f"{NAME}.msg"):
         msg = message(HEADER_SIZE=HEADERSIZE)
-        msg.set_sender(NAME)
-        msg.set_msg("Server created")
+        msg.sender = NAME
+        msg.message = "Server created"
         with open(f"{NAME}.msg", 'wb') as f:
             f.write(pickle.dumps(msg) + b"\t\t||\n")
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain('certif/PrivateKey.pem', 'certif/PublicKey.pem')
+    context.load_cert_chain('certif/Certification.pem', 'certif/Key.pem')
     server_socket = context.wrap_socket(server_socket, server_side=True)
 
     socket_list = [server_socket]
@@ -96,24 +106,24 @@ def main():
                         continue
                     log('Adding client to client list...')
                     socket_list.append(client_socket)
-                    clients[client_socket] = user.get_msg()
+                    clients[client_socket] = user.message
                     log('Generating notification message...')
                     msg = message(HEADER_SIZE=HEADERSIZE) 
-                    msg.set_sender(NAME)
-                    msg.set_msg(f"{user.get_msg()} connected to the server!")
+                    msg.sender = NAME
+                    msg.message = f"{user.message} connected to the server!"
                     log(f'Sending welcome message...\nStore messages: {store_msgs}')
                     send_welcome_message(client_socket)
                     if store_msgs:
                         log('Saving notification....')
                         with open(f"{NAME}.msg", 'ab') as f:
                             f.write(pickle.dumps(msg) + b"\t\t||\n")
-                    log(f"{user.get_msg()} connected to the server!")
+                    log(f"{user.message} connected to the server!")
 
                     log('Sending notification message...')
                     for client_socket in clients:
                         connector.send(client_socket, HEADERSIZE, msg)
-                    out.log(f"Accepted new connection from {client_address[0]}:{client_address[1]} username:{user.get_msg()}")
-                    log(f"Accepted new connection from {client_address[0]}:{client_address[1]} username:{user.get_msg()}")
+                    out.log(f"Accepted new connection from {client_address[0]}:{client_address[1]} username:{user.message}")
+                    log(f"Accepted new connection from {client_address[0]}:{client_address[1]} username:{user.message}")
 
                 else:
                     try:
@@ -125,15 +135,15 @@ def main():
                         socket_list.remove(notified_socket)
                         del clients[notified_socket]
                         continue
-                    if "roll" in msg.get_msg():
-                        value = roller.roller(msg.get_msg().replace("roll ", ''))
+                    if "roll" in msg.message:
+                        value = roller.roller(msg.message.replace("roll ", ''))
                         response = f"is rolled the followings: {value['rolled_values']}"
                         response += (f", with the modifyer {value['modifier_applied']}" if value["modifier_applied"] != None else "")
                         response += f". The total is {value['total']}."
-                        msg.set_msg(response)                        
+                        msg.message = response
 
-                    out.log(f"Retrived message from {msg.get_sender()}")
-                    log(f"Retrived message from {msg.get_sender()}")
+                    out.log(f"Retrived message from {msg.sender}")
+                    log(f"Retrived message from {msg.sender}")
                     if store_msgs:
                         with open(f"{NAME}.msg", 'ab') as f:
                             f.write(pickle.dumps(msg) + b"\t\t||\n")
