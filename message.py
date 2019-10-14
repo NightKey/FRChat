@@ -63,7 +63,7 @@ class message():
         self._sender_header = f"{len(self._sender):>{self.HEADER_SIZE}}".encode("utf-8")
 
     def set_file(self, path):
-        """Sets up the file, red fro the 'path' variable. Returns nothing
+        """Sets up the file, read fro the 'path' variable. Returns nothing
         input: path - string (valid path) - Reads in the file located at the path.
         """
         with open(path, 'br') as f:

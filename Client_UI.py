@@ -22,7 +22,7 @@ client_socket = None
 sending = False
 
 def __init__():
-    """Initialises the program, with the init setups:
+    """initializes the program, with the init setups:
     ip - The IP address of the server we want to connect to
     port - The port number of the server we want to connect to
     name - The name of the client application
@@ -168,7 +168,7 @@ class Ui_MainWindow(object):
         self.msg_ret.start()
 
 def init_socket():
-    """Initialises the connection with the remote server on the given port.
+    """initializes the connection with the remote server on the given port.
     !IMPORTANT!
     The server's certification.pem file must be in the folder certif, with the server's IP address.
     """

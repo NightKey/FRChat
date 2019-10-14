@@ -18,22 +18,22 @@ debug = (False if sys.gettrace() == None else True)
 del sys
 
 def log(data):
-    """Prints out debugg information, if debugger is atached. (Else it would slow the program down signigicantly)
+    """Prints out debug information, if debugger is atached. (Else it would slow the program down signigicantly)
     """
     if debug:
         print(data)
 
 def __init__():
-    """Initialises the program from the .inni file
+    """initializes the program from the .ini file
     ip - The server's private IP address
     port - The desired port number
     name - The server's name
     store - the store_msg flag, 0 - False, 1 - True
     """
-    log('Initialisation started...')
+    log('initialization started...')
     with open("server.ini", 'r') as f:
         data = json.load(f)
-    log('Data red from ini file...')
+    log('Data read from ini file...')
     global IP
     global PORT
     global NAME
@@ -46,10 +46,10 @@ def __init__():
     log('Server data set...')
     out = logger(NAME)
     log('Logger set...')
-    log('Initialisation finished...')
+    log('initialization finished...')
 
 def send_welcome_message(client_socket):
-    """Sebds all saved messages, if the save_message flag is set. The messages are saved in a pickle.
+    """Sends all saved messages, if the save_message flag is set. The messages are saved in a pickle.
     """
     if store_msgs:
         log("Opening msg file...")
