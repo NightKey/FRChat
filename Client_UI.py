@@ -141,26 +141,25 @@ class Ui_MainWindow(object):
         It creates a message object, and calls the send function with it.
         """
         if self.My_Message.text() != "":
-            msg = message(False, HEADERSIZE)
-            msg.message = self.My_Message.text()
-            msg.sender = username
-            self.send(msg)
+            self.send(self.My_Message.text())
             self.My_Message.setText("")
 
     def roll_dice(self):
         """This function gets called, when we roll. It creates a message object, and calls the send function with it.
         """
         if self.D_Num.value() != 0 and self.D_Type.value() != 0:
-            dice = message(False, HEADERSIZE)
-            dice.sender = username
-            dice.message = f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}"
-            self.send(dice)
-            
+            self.send(f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}")
+            self.D_Num.value = 0
+            self.D_Type.value = 0
+            self.D_Mod.value = 0
     
-    def send(self, msg):
+    def send(self, data):
         """Stops the retriving, so we won't get OSError, and waits a little, so it has time to stop retriving, then sends the message.
         After a little wait, it restarts the retriving process...
         """
+        msg = message(False, HEADERSIZE)
+        msg.message = self.My_Message.text()
+        msg.sender = username
         self.msg_ret.terminate()
         time.sleep(0.001)
         connector.send(client_socket, HEADERSIZE, msg)
