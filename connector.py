@@ -43,10 +43,10 @@ def _retrive(client_socket, HEADERSIZE):
     message_length = int(client_socket.recv(HEADERSIZE).decode("utf-8"))
     ret.message = client_socket.recv(message_length).decode("utf-8")
     if ret._has_file:
-        ret.file_header = client_socket.recv(HEADERSIZE)
-        ret.file = client_socket.recv(int(ret.file_header.decode("utf-8")))
-        ret.file_name_header = client_socket.recv(HEADERSIZE)
-        ret.file_name = client_socket.recv(int(ret.file_name_header.decode("utf-8")))
+        ret._file_header = client_socket.recv(HEADERSIZE)
+        ret._file = client_socket.recv(int(ret._file_header.decode("utf-8")))
+        ret._file_name_header = client_socket.recv(HEADERSIZE)
+        ret._file_name = client_socket.recv(int(ret._file_name_header.decode("utf-8")))
     return ret
 
 def retrive(client_socket, HEADERSIZE, _validator):

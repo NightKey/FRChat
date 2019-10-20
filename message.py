@@ -72,13 +72,19 @@ class message():
         _, self._file_name = os.path.split(path)
         self._file_name = self._file_name.encode("utf-8")
         self._file_name_header = f"{len(self._file_name):>{self.HEADER_SIZE}}".encode("utf-8")
+        if self._message_header == None and self._has_file:
+            self.message = f"Sent a file named '{self.get_filename()}'"
 
-    def create_file(self):
-        """This function re-creates the file stored in the message to the following path: './files/{filename}' 
+    def create_file(self, path=None):
+        """This function re-creates the file stored in the message to the following path: './files/{filename}', if no path provided. 
         Returns nothing.
         """
-        with open(os.path.join("files", self._file_name.decode("utf-8")), 'bw') as f:
-            f.write(self._file)
+        if path == None:
+            with open(os.path.join("files", self.get_filename), 'bw') as f:
+                f.write(self._file)
+        else:
+            with open(path, 'bw') as f:
+                f.write(self._file)
 
     def set_date_time(self, date, time):
         """Sets the message creation date and time
@@ -101,7 +107,7 @@ class message():
         sender: message - sep=': '
         input: sep - string - this string will be used to separate the sender from the message
         """
-        return "{}{}{}".format(self._sender.decode("utf-8"), sep, self._message.decode("utf-8"))
+        return "{}{}{}".format(self.sender, sep, self.message)
     
     def __str__(self):
         return self.get_message_formated()
@@ -117,8 +123,6 @@ class message():
         Where the leading byte is decided by the number of elements sent (sender, message, file, filename).
         input: send_sender - boolean - decides wether to send the sender or not.
         """
-        if self._message_header == None and self._has_file:
-            self.message = f"Sent a file named '{self.get_filename()}'"
         if send_sender and self._sender_header != None: 
             if self._has_file and self._file != None:
                 return b'6'+self.date_header+self.date+self.time_header+self.time+self._sender_header+self._sender+self._message_header+self._message+self._file_header+self._file+self._file_name_header+self._file_name
