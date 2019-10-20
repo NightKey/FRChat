@@ -32,7 +32,7 @@ def _retrive(client_socket, HEADERSIZE):
     message_header = client_socket.recv(1)
     if not len(message_header):
         return False
-    ret = message(has_file=(int(message_header)==5 or int(message_header) == 6), HEADER_SIZE=HEADERSIZE)
+    ret = message(has_file=(int(message_header)==5 or int(message_header) == 6), HEADERSIZE=HEADERSIZE)
     if int(message_header) != 1:
         date = client_socket.recv(int(client_socket.recv(HEADERSIZE).decode("utf-8"))).decode('utf-8')
         time = client_socket.recv(int(client_socket.recv(HEADERSIZE).decode("utf-8"))).decode('utf-8')
@@ -54,7 +54,7 @@ def retrive(client_socket, HEADERSIZE, _validator):
     Input: client_socket - the socket used to communicate with the other party, HEADERSIZE - the header's size, _validator - the string that is used to validate.
     Return: a message object cretated from the socket stream
     """
-    validator = message(HEADER_SIZE=HEADERSIZE)
+    validator = message(HEADERSIZE=HEADERSIZE)
     validator.sender = _validator
     validator.message = str(datetime.timestamp(datetime.now()))
     key = validator.get_hash()
@@ -66,11 +66,12 @@ def retrive(client_socket, HEADERSIZE, _validator):
     resp = _retrive(client_socket, HEADERSIZE)
     return resp
 
-def send(client_socket, HEADERSIZE, msg):
+def send(client_socket, msg):
     """Sends a message with the described 6 step process.
     Input: client_socket - the socket used to communicate with the other party, HEADERSIZE - the header's size, msg - the msg object to send.
     Return: True - message was sent safely, False - message was not sent, because the validation was not successfull (Error message was sent instead).
     """
+    HEADERSIZE = msg.HEADERSIZE
     now = datetime.now()
     key = msg.get_hash()
     outside_key = []
@@ -87,6 +88,6 @@ def send(client_socket, HEADERSIZE, msg):
         client_socket.send(msg.get_stream(True))
         return True
     else:
-        msg.set_msg("Connection not secure")
+        msg.message = "Connection not secure"
         client_socket.send(msg.get_stream(True))
         return False
