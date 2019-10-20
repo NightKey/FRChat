@@ -43,6 +43,7 @@ def __init__():
     PORT = data['port']
     NAME = data['name']
     store_msgs = bool(data['store'])
+    log(f"IP: {IP}\nPort: {PORT}\nName: {NAME}\nSave messages: {store_msgs}")
     log('Server data set...')
     out = logger(NAME)
     log('Logger set...')
@@ -52,15 +53,15 @@ def send_welcome_message(client_socket):
     """Sends all saved messages, if the save_message flag is set. The messages are saved in a pickle.
     """
     if store_msgs:
-        log("Opening msg file...")
-        with open(f"{NAME}.msg", 'rb') as f:
-            log("Loading file content...")
-            msgs = f.read(-1).split(b"\t\t||\n")
-        for msg in msgs:
-            if msg != b"":
-                connector.send(client_socket, HEADERSIZE, pickle.loads(msg))
+        log("Sending message file...")
+        msg = message(True, HEADERSIZE)
+        msg.sender = NAME
+        msg.set_file(f"{NAME}.msg")
+        connector.send(client_socket, HEADERSIZE, msg)
     else:
-        pass
+        msg = message(False, HEADERSIZE)
+        msg.sender = NAME
+        msg.message = "None"
 
 def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

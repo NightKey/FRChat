@@ -7,12 +7,9 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import socket
-import ssl
-import select
+import ssl, select, time, pickle, os, socket
 import errno, json, connector
 from message import message
-import time
 
 HEADERSIZE = 10
 IP = ""
@@ -20,6 +17,7 @@ PORT = 0
 username = None
 client_socket = None
 sending = False
+init_msg = None
 
 def __init__():
     """initializes the program, with the init setups:
@@ -130,11 +128,20 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "Type"))
         self.label_3.setText(_translate("MainWindow", "Modifyer"))
         self.label_4.setText(_translate("MainWindow", "Dice setup"))
+        self.load()
 
-    def retrive_msg(self, value):
+    def load(self):
+        if init_msg != None:
+            for msg in init_msg:
+                self.retrive_msg(msg)
+
+    def retrive_msg(self, msg):
         """This function updates the GUI from a new message.
         """
-        self.Incoming_Message.append(f"{value}")
+        if isinstance(msg, message):
+            self.Incoming_Message.append(f"{msg.get_date_time()} {msg.get_message_formated('> ')}")
+        else:
+            self.Incoming_Message.append(msg)
 
     def send_message(self):
         """This function get's called, when we press RETURN, or press the send button.
@@ -158,7 +165,7 @@ class Ui_MainWindow(object):
         After a little wait, it restarts the retriving process...
         """
         msg = message(False, HEADERSIZE)
-        msg.message = self.My_Message.text()
+        msg.message = data
         msg.sender = username
         self.msg_ret.terminate()
         time.sleep(0.001)
@@ -186,6 +193,21 @@ def init_socket():
     if not connector.send(client_socket, HEADERSIZE, user_name):
         print("Error in the connection!")
         exit(2)
+    messages = connector.retrive(client_socket, HEADERSIZE, username)
+    if not messages:
+        print("Error in the connection!")
+        exit(2)
+    elif messages._has_file:
+        messages.create_file(f"{username}.msg")
+        tmp = []
+        with open(f"{username}.msg", 'rb') as f:
+            msgs = f.read(-1).split(b"\t\t||\n")
+        for msg in msgs:
+            if msg != b"":
+                tmp.append(pickle.loads(msg))
+        os.remove(f"{username}.msg")
+        global init_msg
+        init_msg = tmp
 
 def main():
     init_socket()
