@@ -57,7 +57,7 @@ def send_welcome_message(client_socket):
         msg = message(True, HEADERSIZE)
         msg.sender = NAME
         msg.set_file(f"{NAME}.msg")
-        connector.send(client_socket, HEADERSIZE, msg)
+        connector.send(client_socket, msg)
     else:
         msg = message(False, HEADERSIZE)
         msg.sender = NAME
@@ -72,7 +72,7 @@ def main():
     server_socket.listen()
 
     if store_msgs and not os.path.exists(f"{NAME}.msg"):
-        msg = message(HEADER_SIZE=HEADERSIZE)
+        msg = message(HEADERSIZE=HEADERSIZE)
         msg.sender = NAME
         msg.message = "Server created"
         with open(f"{NAME}.msg", 'wb') as f:
@@ -109,7 +109,7 @@ def main():
                     socket_list.append(client_socket)
                     clients[client_socket] = user.message
                     log('Generating notification message...')
-                    msg = message(HEADER_SIZE=HEADERSIZE) 
+                    msg = message(HEADERSIZE=HEADERSIZE) 
                     msg.sender = NAME
                     msg.message = f"{user.message} connected to the server!"
                     log(f'Sending welcome message...\nStore messages: {store_msgs}')
@@ -122,7 +122,7 @@ def main():
 
                     log('Sending notification message...')
                     for client_socket in clients:
-                        connector.send(client_socket, HEADERSIZE, msg)
+                        connector.send(client_socket, msg)
                     out.log(f"Accepted new connection from {client_address[0]}:{client_address[1]} username:{user.message}")
                     log(f"Accepted new connection from {client_address[0]}:{client_address[1]} username:{user.message}")
 
@@ -146,10 +146,16 @@ def main():
                     out.log(f"Retrived message from {msg.sender}")
                     log(f"Retrived message from {msg.sender}")
                     if store_msgs:
-                        with open(f"{NAME}.msg", 'ab') as f:
-                            f.write(pickle.dumps(msg) + b"\t\t||\n")
+                        with open(f"{NAME}.msg", 'rb') as f:
+                            data = f.read(-1).split(b"\t\t||\n")
+                        if len(data) > 40:
+                            del data[0]
+                        data.append(pickle.dumps(msg))
+                        with open(f"{NAME}.msg", 'wb') as f:
+                            for m in data:
+                                f.write(m + b"\t\t||\n")
                     for client_socket in clients:
-                        connector.send(client_socket, HEADERSIZE, msg)
+                        connector.send(client_socket, msg)
             
             for notified_socket in exception_socket:
                 socket_list.remove(notified_socket)

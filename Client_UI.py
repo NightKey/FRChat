@@ -88,6 +88,7 @@ class Ui_MainWindow(object):
         self.D_Mod = QtWidgets.QSpinBox(self.centralwidget)
         self.D_Mod.setGeometry(QtCore.QRect(760, 110, 41, 22))
         self.D_Mod.setObjectName("D_Mod")
+        self.D_Mod.setMinimum(-20)
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(710, 50, 47, 13))
         self.label.setObjectName("label")
@@ -155,10 +156,11 @@ class Ui_MainWindow(object):
         """This function gets called, when we roll. It creates a message object, and calls the send function with it.
         """
         if self.D_Num.value() != 0 and self.D_Type.value() != 0:
-            self.send(f"roll {self.D_Num.value()}d{self.D_Type.value()}+{self.D_Mod.value()}")
-            self.D_Num.value = 0
-            self.D_Type.value = 0
-            self.D_Mod.value = 0
+            op = '+' if self.D_Mod.value() >= 0 else ''
+            self.send(f"roll {self.D_Num.value()}d{self.D_Type.value()}{op}{self.D_Mod.value()}")
+            self.D_Num.setValue(0)
+            self.D_Type.setValue(0)
+            self.D_Mod.setValue(0)
     
     def send(self, data):
         """Stops the retriving, so we won't get OSError, and waits a little, so it has time to stop retriving, then sends the message.
@@ -169,7 +171,7 @@ class Ui_MainWindow(object):
         msg.sender = username
         self.msg_ret.terminate()
         time.sleep(0.001)
-        connector.send(client_socket, HEADERSIZE, msg)
+        connector.send(client_socket, msg)
         time.sleep(0.001)
         self.msg_ret.start()
 
@@ -187,10 +189,10 @@ def init_socket():
     client_socket = context.wrap_socket(client_socket, server_hostname='furryresidency')
     #client_socket.setblocking(False)
 
-    user_name = message(HEADER_SIZE=HEADERSIZE)
+    user_name = message(HEADERSIZE=HEADERSIZE)
     user_name.sender = username
     user_name.message = username
-    if not connector.send(client_socket, HEADERSIZE, user_name):
+    if not connector.send(client_socket, user_name):
         print("Error in the connection!")
         exit(2)
     messages = connector.retrive(client_socket, HEADERSIZE, username)
