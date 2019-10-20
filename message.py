@@ -16,10 +16,10 @@ By runing this py file in itself, it will run a test to decide, if it's working 
 """
 
 class message():
-    def __init__(self, has_file=False, HEADER_SIZE=10):
+    def __init__(self, has_file=False, HEADERSIZE=10):
         """This function sets up the message object, depending on the input. Returns nothing.
         input: _has_file - boolean - Decides weather the message will contain a file, or not. (defailt is False)
-               HEADER_SIZE - int - Sets up how many characers the header should be.
+               HEADERSIZE - int - Sets up how many characers the header should be.
         """
         if has_file:
             self._file = None
@@ -29,7 +29,7 @@ class message():
         self._has_file = has_file
         self._message = None
         self._message_header = None
-        self.HEADER_SIZE = HEADER_SIZE
+        self.HEADERSIZE = HEADERSIZE
         self._sender = None
         self._sender_header = None
         self.set_date_time(str(datetime.date(datetime.now())), str(datetime.time(datetime.now())).split('.')[0])
@@ -46,7 +46,7 @@ class message():
         input: message - utf-8 string - This will be the message.
         """
         self._message = message.encode("utf-8")
-        self._message_header = f"{len(self._message):>{self.HEADER_SIZE}}".encode("utf-8")
+        self._message_header = f"{len(self._message):>{self.HEADERSIZE}}".encode("utf-8")
 
     @property
     def sender(self):
@@ -60,7 +60,7 @@ class message():
         input: sender - utf-8 string - This will be the sender's name.
         """
         self._sender = sender.encode("utf-8")
-        self._sender_header = f"{len(self._sender):>{self.HEADER_SIZE}}".encode("utf-8")
+        self._sender_header = f"{len(self._sender):>{self.HEADERSIZE}}".encode("utf-8")
 
     def set_file(self, path):
         """Sets up the file, read fro the 'path' variable. Returns nothing
@@ -68,10 +68,10 @@ class message():
         """
         with open(path, 'br') as f:
             self._file = f.read(-1)
-        self._file_header = f"{len(self._file):>{self.HEADER_SIZE}}".encode("utf-8")
+        self._file_header = f"{len(self._file):>{self.HEADERSIZE}}".encode("utf-8")
         _, self._file_name = os.path.split(path)
         self._file_name = self._file_name.encode("utf-8")
-        self._file_name_header = f"{len(self._file_name):>{self.HEADER_SIZE}}".encode("utf-8")
+        self._file_name_header = f"{len(self._file_name):>{self.HEADERSIZE}}".encode("utf-8")
         if self._message_header == None and self._has_file:
             self.message = f"Sent a file named '{self.get_filename()}'"
 
@@ -93,8 +93,8 @@ class message():
         """
         self.date = date.encode('utf-8')
         self.time = time.encode('utf-8')
-        self.date_header = f"{len(self.date):>{self.HEADER_SIZE}}".encode('utf-8')
-        self.time_header = f"{len(self.time):>{self.HEADER_SIZE}}".encode('utf-8')
+        self.date_header = f"{len(self.date):>{self.HEADERSIZE}}".encode('utf-8')
+        self.time_header = f"{len(self.time):>{self.HEADERSIZE}}".encode('utf-8')
 
     def get_date_time(self):
         """Returns the date-time in the following format:
