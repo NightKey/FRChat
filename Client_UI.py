@@ -18,6 +18,13 @@ username = None
 client_socket = None
 sending = False
 init_msg = None
+debug = (False if os.sys.gettrace() == None else True)
+
+def log(data):
+    """Prints out debug information, if debugger is atached. (Else it would slow the program down signigicantly)
+    """
+    if debug:
+        print(data)
 
 def __init__():
     """initializes the program, with the init setups:
@@ -34,6 +41,8 @@ def __init__():
     PORT = data['port']
     username = data['name']
 
+incoming_messages = []
+
 class retriver(QtCore.QThread):
     return_value = QtCore.pyqtSignal(str)
     """This class is the retriver part of the client. 
@@ -45,10 +54,13 @@ class retriver(QtCore.QThread):
                 while True:
                     msg = connector.retrive(client_socket, HEADERSIZE, username)
                     if msg is False:
+                        log("Connection closed")
                         self.return_value.emit("CONNECTION TO THE SERVER WAS CLOSED")
                         exit(0)
                     else:
-                        self.return_value.emit(f"{msg.get_date_time()} {msg.get_message_formated('> ')}")
+                        incoming_messages.append(msg)
+                        log(msg)
+                        self.return_value.emit("")
             except IOError as e:
                 if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                     print("Reading error!")
@@ -69,10 +81,9 @@ class Ui_MainWindow(object):
         self.My_Message = QtWidgets.QLineEdit(self.centralwidget)
         self.My_Message.setGeometry(QtCore.QRect(20, 490, 601, 20))
         self.My_Message.setObjectName("My_Message")
-        self.Incoming_Message = QtWidgets.QTextEdit(self.centralwidget)
+        self.Incoming_Message = QtWidgets.QListWidget(self.centralwidget)
         self.Incoming_Message.setGeometry(QtCore.QRect(20, 10, 681, 471))
         self.Incoming_Message.setObjectName("Incoming_Message")
-        self.Incoming_Message.setReadOnly(True)
         self.Send = QtWidgets.QPushButton(self.centralwidget)
         self.Send.setGeometry(QtCore.QRect(630, 490, 75, 23))
         self.Send.setObjectName("Send")
@@ -116,6 +127,7 @@ class Ui_MainWindow(object):
         self.Send.clicked.connect(self.send_message)
         self.Roll.clicked.connect(self.roll_dice)
         self.My_Message.returnPressed.connect(self.send_message)
+        self.Incoming_Message.itemClicked.connect(self.msg_select)
         self.msg_ret = retriver()
         self.msg_ret.return_value.connect(self.retrive_msg)
         self.msg_ret.start()
@@ -131,18 +143,34 @@ class Ui_MainWindow(object):
         self.label_4.setText(_translate("MainWindow", "Dice setup"))
         self.load()
 
+    def msg_select(self, item):
+        if incoming_messages[item.type()]._has_file:
+            pass
+        else:
+            flag = QtCore.QItemSelectionModel.SelectionFlag(0x0001)
+            self.Incoming_Message.setCurrentItem(item, flag)
+
     def load(self):
         if init_msg != None:
             for msg in init_msg:
-                self.retrive_msg(msg)
+                log(f"Loaded message: {msg}")
+                incoming_messages.append(msg)
+                self.retrive_msg()
 
-    def retrive_msg(self, msg):
+    def retrive_msg(self, msg=""):
         """This function updates the GUI from a new message.
         """
-        if isinstance(msg, message):
-            self.Incoming_Message.append(f"{msg.get_date_time()} {msg.get_message_formated('> ')}")
+        if msg == "":
+            icon = QtGui.QIcon().fromTheme("emblem-downloads")
+            item = QtWidgets.QListWidgetItem(f"{incoming_messages[-1].get_date_time()} {incoming_messages[-1].get_message_formated('> ')}", type=(len(incoming_messages) - 1))
+            item.setIcon(icon)
+            self.Incoming_Message.addItem(item)
+            log(f"'{item.text}' added to the list (item)")
+            log("incoming_messages length: {}".format(len(incoming_messages)))
         else:
-            self.Incoming_Message.append(msg)
+            log(f"'{msg}' added to the list (msg)")
+            self.Incoming_Message.addItem(QtWidgets.QListWidgetItem(msg))
+        self.Incoming_Message.scrollToBottom()
 
     def send_message(self):
         """This function get's called, when we press RETURN, or press the send button.
